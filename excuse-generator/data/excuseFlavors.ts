@@ -27,7 +27,15 @@ export const EXCUSE_FLAVORS: ExcuseFlavorDef[] = [
   },
   {
     label: "Horsing Around",
-    instruction: "Make the excuse hilarious and over-the-top. The joke should be absurd and delivered with complete sincerity. Comedy gold.",
+    instruction: "Make the excuse have something to do with horses. It should be believable and sound plausible.",
+  },
+  {
+    label: "I LOVE CATS",
+    instruction: "Make the excuse have something to do with cats. It should be believable and sound plausible.",
+  },
+  {
+    label: "I LOVE DOGS",
+    instruction: "Make the excuse have something to do with dogs. It should be believable and sound plausible.",
   },
   {
     label: "Theft",
