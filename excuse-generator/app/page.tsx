@@ -2,18 +2,26 @@ import ExcuseForm from "@/components/ExcuseForm";
 
 export default function Home() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center px-4 py-16">
-      <div className="w-full max-w-xl">
-        <div className="mb-10 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-zinc-50">
-            Excuse Generator
-          </h1>
-          <p className="mt-3 text-zinc-400 text-base">
-            Describe your situation and get a ready-to-send excuse.
-          </p>
+    <div className="flex flex-col min-h-screen">
+      {/* Header */}
+      <header className="flex justify-between items-center px-8 md:px-30 py-8 bg-white border-b-4 border-black shadow-[0_8px_0_#000]">
+        <div className="flex items-center gap-4">
+          <div
+            className="text-[40px] font-black tracking-[-0.04em] bg-[#FFE600] px-3 border-4 border-black shadow-[4px_4px_0_#000] leading-none py-1"
+            style={{ transform: "rotate(-2deg)" }}
+          >
+            BAIL.
+          </div>
+          <div className="text-[11px] font-extrabold uppercase tracking-widest border-2 border-black rounded-full px-4 py-2 bg-white">
+            Beta v0.9
+          </div>
         </div>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 px-8 md:px-30 py-10">
         <ExcuseForm />
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
