@@ -151,7 +151,7 @@ export default function ExcuseForm() {
               </svg>
             </button>
             {flavorOpen && (
-              <div className="absolute -left-1 -right-1 top-full border-4 border-t-0 border-black bg-white z-10 shadow-[6px_6px_0_#000]">
+              <div className="absolute -left-1 -right-1 top-full border-4 border-t-0 border-black bg-white z-10 shadow-[6px_6px_0_#000] max-h-56 overflow-y-auto">
                 {EXCUSE_FLAVORS.map((f) => (
                   <button
                     key={f.label}
