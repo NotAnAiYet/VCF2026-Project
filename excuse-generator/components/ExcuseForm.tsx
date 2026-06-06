@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
+import { RANDOM_SITUATIONS } from "@/data/randomSituations";
 
 function threatBtnClass(i: number, isActive: boolean, activeClass: string): string {
   // 2-col grid on mobile → 4-col on sm+
@@ -85,6 +86,13 @@ export default function ExcuseForm() {
 
   function sendSms() {
     window.open("sms:?&body=" + encodeURIComponent(excuse));
+  }
+
+  function randomize() {
+    const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+    setSituation(pick(RANDOM_SITUATIONS));
+    setThreatLevel(pick(THREAT_LEVELS).value);
+    setExcuseFlavor(pick(EXCUSE_FLAVORS).label);
   }
 
   const canSubmit = situation.trim().length > 0 && !loading;
@@ -170,12 +178,20 @@ export default function ExcuseForm() {
           </div>
         </div>
 
-        {/* Submit — sticky on mobile */}
-        <div className="sticky bottom-0 -mx-6 px-6 pb-6 pt-3 bg-white sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:pt-0 sm:bg-transparent mt-2 border-t-4 border-black sm:border-t-0">
+        {/* Submit + Dice — sticky on mobile */}
+        <div className="sticky bottom-0 -mx-6 px-6 pb-6 pt-3 bg-white sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:pt-0 sm:bg-transparent mt-2 border-t-4 border-black sm:border-t-0 flex gap-3">
+          <button
+            type="button"
+            onClick={randomize}
+            title="Randomize everything"
+            className="shrink-0 w-16 bg-[#FFE600] border-4 border-black shadow-[6px_6px_0_#000] flex items-center justify-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[2px_2px_0_#000]"
+          >
+            <DiceIcon />
+          </button>
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-[28px] font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+            className="flex-1 bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-[28px] font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-3">
@@ -283,6 +299,19 @@ export default function ExcuseForm() {
         )}
       </div>
     </div>
+  );
+}
+
+function DiceIcon() {
+  return (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="3" />
+      <circle cx="8"  cy="8"  r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="8"  r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="8"  cy="16" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
 

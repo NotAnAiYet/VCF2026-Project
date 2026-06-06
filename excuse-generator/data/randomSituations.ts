@@ -1,0 +1,17 @@
+export const RANDOM_SITUATIONS: string[] = [
+  "4PM Zoom sync about TPS reports",
+  "My friend's birthday dinner I RSVPed yes to three weeks ago",
+  "Monday morning stand-up with the whole engineering team",
+  "A first date I agreed to but now absolutely dread",
+  "My cousin's gender reveal party two hours away",
+  "The gym class I booked and paid for in advance",
+  "A networking event my boss told me I should attend",
+  "Sunday brunch with my girlfriend's parents",
+  "The dentist appointment I've already rescheduled twice",
+  "A group project meeting I haven't prepared anything for",
+  "My neighbour's housewarming I promised I'd help set up",
+  "A work happy hour that's been in the calendar for a month",
+  "My sister's piano recital — she will 100% notice if I'm not there",
+  "A volunteering shift I signed up for when I was feeling optimistic",
+  "The quarterly all-hands presentation I'm supposed to present at",
+];
