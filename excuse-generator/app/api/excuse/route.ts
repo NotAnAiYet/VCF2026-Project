@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 type Tone = "formal" | "casual" | "funny";
 
@@ -23,9 +23,9 @@ export async function POST(req: NextRequest) {
       ? body.tone
       : "casual";
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
-      { error: "OPENAI_API_KEY is not configured." },
+      { error: "GROQ_API_KEY is not configured." },
       { status: 500 }
     );
   }
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const completion = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "llama-3.1-8b-instant",
       temperature: 0.9,
       messages: [
         { role: "system", content: systemPrompt },
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ excuse });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Failed to contact OpenAI.";
+      err instanceof Error ? err.message : "Failed to contact Groq.";
     return NextResponse.json({ error: message }, { status: 502 });
   }
 }
