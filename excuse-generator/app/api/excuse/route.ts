@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
 
   const systemPrompt = `You are an expert excuse writer. The user will describe a situation they want to bail out of. Your job is to:
 - Write a believable, convincing excuse that fits the context perfectly.${flavorLine}
+- The excuse MUST directly reference specific details from the situation the user described — do not write a generic excuse that could apply to anyone.
 - Output ONLY the excuse text, ready to be sent as-is — no labels, no preamble, no quotation marks.
 - Keep the excuse under 80 words.
 - Urgency/tone: ${threatLevelDef.instruction}`;

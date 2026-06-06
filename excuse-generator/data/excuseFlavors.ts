@@ -27,15 +27,15 @@ export const EXCUSE_FLAVORS: ExcuseFlavorDef[] = [
   },
   {
     label: "Horsing Around",
-    instruction: "Make the excuse have something to do with horses. It should be believable and sound plausible.",
+    instruction: "Reference a horse-related situation. The excuse should be believable and sound plausible.",
   },
   {
     label: "I LOVE CATS",
-    instruction: "Make the excuse have something to do with cats. It should be believable and sound plausible.",
+    instruction: "Reference a Cat-related situation. The excuse should be believable and sound plausible.",
   },
   {
     label: "I LOVE DOGS",
-    instruction: "Make the excuse have something to do with dogs. It should be believable and sound plausible.",
+    instruction: "Reference a Dog-related situation. The excuse should be believable and sound plausible.",
   },
   {
     label: "Theft",
@@ -43,6 +43,6 @@ export const EXCUSE_FLAVORS: ExcuseFlavorDef[] = [
   },
   {
     label: "Weather",
-    instruction: "Weather-related excuses. The excuse should be believable and sound plausible.",
+    instruction: "Blame the weather for the situation. The excuse should be believable and sound plausible.",
   },
 ];

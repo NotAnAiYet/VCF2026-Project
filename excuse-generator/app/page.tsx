@@ -17,7 +17,7 @@ export default function Home() {
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <div className="text-base font-extrabold">
+          <div className="hidden sm:block text-base font-extrabold">
             Credits: <span style={{ color: "#FF2A2A" }}>12 remaining</span>
           </div>
           <div

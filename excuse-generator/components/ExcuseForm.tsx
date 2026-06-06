@@ -4,6 +4,20 @@ import { useState, useRef, useEffect } from "react";
 import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 
+function threatBtnClass(i: number, isActive: boolean, activeClass: string): string {
+  // 2-col grid on mobile → 4-col on sm+
+  // Mobile borders: right on even indices, bottom on first row
+  // SM borders: right on all but last (i < 3), no bottom
+  const parts = [
+    "py-4 text-center font-extrabold text-sm sm:text-base transition-colors cursor-pointer",
+    i % 2 === 0                 && "border-r-4 border-black",
+    i < 2                       && "border-b-4 sm:border-b-0 border-black",
+    (i === 1 || i === 2)        && "sm:border-r-4 sm:border-black",
+    isActive ? activeClass : "bg-white text-black hover:bg-[#F4F4F0]",
+  ];
+  return parts.filter(Boolean).join(" ");
+}
+
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
   const [threatLevel, setThreatLevel] = useState<ThreatLevel>("moderate");
@@ -15,6 +29,7 @@ export default function ExcuseForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -53,6 +68,7 @@ export default function ExcuseForm() {
       const data = await res.json();
       setExcuse(data.excuse);
       setSubmittedSituation(situation.trim());
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error.");
     } finally {
@@ -100,19 +116,13 @@ export default function ExcuseForm() {
           <div className="text-sm font-black uppercase tracking-widest">
             2. Threat Level
           </div>
-          <div className="flex border-4 border-black shadow-[6px_6px_0_#000] w-full overflow-hidden">
+          <div className="grid grid-cols-2 sm:grid-cols-4 border-4 border-black shadow-[6px_6px_0_#000] w-full overflow-hidden">
             {THREAT_LEVELS.map((t, i) => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setThreatLevel(t.value)}
-                className={[
-                  "flex-1 py-4 text-center font-extrabold text-base transition-colors cursor-pointer",
-                  i < THREAT_LEVELS.length - 1 ? "border-r-4 border-black" : "",
-                  threatLevel === t.value
-                    ? t.activeClass
-                    : "bg-white text-black hover:bg-[#F4F4F0]",
-                ].join(" ")}
+                className={threatBtnClass(i, threatLevel === t.value, t.activeClass)}
               >
                 {t.label}
               </button>
@@ -160,25 +170,27 @@ export default function ExcuseForm() {
           </div>
         </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="mt-2 w-full bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-[28px] font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          {loading ? (
-            <span className="flex items-center justify-center gap-3">
-              <Spinner />
-              Generating…
-            </span>
-          ) : (
-            "BAIL ME OUT"
-          )}
-        </button>
+        {/* Submit — sticky on mobile */}
+        <div className="sticky bottom-0 -mx-6 px-6 pb-6 pt-3 bg-white sm:static sm:mx-0 sm:px-0 sm:pb-0 sm:pt-0 sm:bg-transparent mt-2 border-t-4 border-black sm:border-t-0">
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-[28px] font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-3">
+                <Spinner />
+                Generating…
+              </span>
+            ) : (
+              "BAIL ME OUT"
+            )}
+          </button>
+        </div>
       </form>
 
-      {/* ── Right: Output ── */}
-      <div className="flex flex-col gap-6">
+      {/* ── Right: Output — hidden on mobile until generated ── */}
+      <div ref={resultRef} className={`flex flex-col gap-6 ${!excuse && !error ? "hidden lg:flex" : "flex"}`}>
 
         {/* "THE ALIBI" stripe accent */}
         <div className="flex items-center gap-6">
