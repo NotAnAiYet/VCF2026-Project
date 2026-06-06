@@ -3,8 +3,6 @@ import Groq from "groq-sdk";
 import { THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
 
@@ -26,6 +24,8 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+
+  const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   // suppress unused-var warning while keeping the valid-values array for future validation
   void validThreatValues;
