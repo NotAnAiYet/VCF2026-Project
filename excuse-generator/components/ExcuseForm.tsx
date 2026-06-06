@@ -1,28 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-type Tone = "formal" | "casual" | "funny";
+type ThreatLevel = "mild" | "moderate" | "defcon1" | "funny";
 
-const TONES: { value: Tone; label: string }[] = [
-  { value: "formal", label: "Formal" },
-  { value: "casual", label: "Casual" },
+const THREAT_LEVELS: { value: ThreatLevel; label: string }[] = [
+  { value: "mild", label: "Mild" },
+  { value: "moderate", label: "Moderate" },
+  { value: "defcon1", label: "DEFCON 1" },
   { value: "funny", label: "Funny" },
 ];
 
-const TONE_ACTIVE_CLASS: Record<Tone, string> = {
-  formal: "bg-[#FFE600] text-black",
-  casual: "bg-[#FF9900] text-black",
-  funny: "bg-[#FF2A2A] text-white",
+const THREAT_ACTIVE_CLASS: Record<ThreatLevel, string> = {
+  mild: "bg-[#FFE600] text-black",
+  moderate: "bg-[#FF9900] text-black",
+  defcon1: "bg-[#FF2A2A] text-white",
+  funny: "bg-[#00C2FF] text-black",
 };
+
+const EXCUSE_FLAVORS = [
+  "Vaguely Medical (Non-contagious)",
+  "Family Emergency (Unspecified)",
+  "Technical Difficulties",
+  "Prior Commitment",
+  "Natural Disaster Adjacent",
+];
 
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
-  const [tone, setTone] = useState<Tone>("casual");
+  const [threatLevel, setThreatLevel] = useState<ThreatLevel>("moderate");
+  const [excuseFlavor, setExcuseFlavor] = useState(EXCUSE_FLAVORS[0]);
+  const [flavorOpen, setFlavorOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [excuse, setExcuse] = useState("");
+  const [submittedSituation, setSubmittedSituation] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    function handleOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setFlavorOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
   async function generate(e?: React.FormEvent) {
     e?.preventDefault();
@@ -36,7 +60,11 @@ export default function ExcuseForm() {
       const res = await fetch("/api/excuse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation: situation.trim(), tone }),
+        body: JSON.stringify({
+          situation: situation.trim(),
+          threatLevel,
+          excuseFlavor,
+        }),
       });
 
       if (!res.ok) {
@@ -46,6 +74,7 @@ export default function ExcuseForm() {
 
       const data = await res.json();
       setExcuse(data.excuse);
+      setSubmittedSituation(situation.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error.");
     } finally {
@@ -60,10 +89,14 @@ export default function ExcuseForm() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  function sendSms() {
+    window.open("sms:?&body=" + encodeURIComponent(excuse));
+  }
+
   const canSubmit = situation.trim().length > 0 && !loading;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-16 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-20 items-start">
 
       {/* ── Left: Generator form ── */}
       <form
@@ -72,7 +105,7 @@ export default function ExcuseForm() {
       >
         {/* 1. Situation */}
         <div className="flex flex-col gap-4">
-          <div className="text-[11px] font-black uppercase tracking-widest">
+          <div className="text-sm font-black uppercase tracking-widest">
             1. What are we bailing on?
           </div>
           <textarea
@@ -84,22 +117,22 @@ export default function ExcuseForm() {
           />
         </div>
 
-        {/* 2. Tone */}
+        {/* 2. Threat Level */}
         <div className="flex flex-col gap-4">
-          <div className="text-[11px] font-black uppercase tracking-widest">
-            2. Tone
+          <div className="text-sm font-black uppercase tracking-widest">
+            2. Threat Level
           </div>
           <div className="flex border-4 border-black shadow-[6px_6px_0_#000] w-full overflow-hidden">
-            {TONES.map((t, i) => (
+            {THREAT_LEVELS.map((t, i) => (
               <button
                 key={t.value}
                 type="button"
-                onClick={() => setTone(t.value)}
+                onClick={() => setThreatLevel(t.value)}
                 className={[
                   "flex-1 py-4 text-center font-extrabold text-base transition-colors cursor-pointer",
-                  i < TONES.length - 1 ? "border-r-4 border-black" : "",
-                  tone === t.value
-                    ? TONE_ACTIVE_CLASS[t.value]
+                  i < THREAT_LEVELS.length - 1 ? "border-r-4 border-black" : "",
+                  threatLevel === t.value
+                    ? THREAT_ACTIVE_CLASS[t.value]
                     : "bg-white text-black hover:bg-[#F4F4F0]",
                 ].join(" ")}
               >
@@ -109,11 +142,51 @@ export default function ExcuseForm() {
           </div>
         </div>
 
+        {/* 3. Excuse Flavor */}
+        <div className="flex flex-col gap-4">
+          <div className="text-sm font-black uppercase tracking-widest">
+            3. Excuse Flavor
+          </div>
+          <div ref={dropdownRef} className="relative border-4 border-black shadow-[6px_6px_0_#000] bg-white">
+            <button
+              type="button"
+              onClick={() => setFlavorOpen((o) => !o)}
+              className="w-full flex items-center justify-between px-5 py-5 font-extrabold text-lg cursor-pointer bg-white text-left"
+            >
+              <span>{excuseFlavor}</span>
+              <svg
+                width="24" height="24" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="4" strokeLinecap="square"
+                className={`transition-transform ${flavorOpen ? "rotate-180" : ""}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {flavorOpen && (
+              <div className="absolute -left-1 -right-1 top-full border-4 border-t-0 border-black bg-white z-10 shadow-[6px_6px_0_#000]">
+                {EXCUSE_FLAVORS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => { setExcuseFlavor(f); setFlavorOpen(false); }}
+                    className={[
+                      "w-full text-left px-5 py-4 font-extrabold text-base cursor-pointer border-b-2 border-[#E5E5E5] last:border-b-0",
+                      f === excuseFlavor ? "bg-[#FFE600]" : "bg-white hover:bg-[#F4F4F0]",
+                    ].join(" ")}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Submit */}
         <button
           type="submit"
           disabled={!canSubmit}
-          className="mt-2 w-full bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-2xl font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          className="mt-2 w-full bg-[#FF2A2A] border-4 border-black shadow-[8px_8px_0_#000] text-white text-[28px] font-black uppercase py-4 text-center transition-all active:translate-x-1 active:translate-y-1 active:shadow-[4px_4px_0_#000] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-3">
@@ -145,7 +218,7 @@ export default function ExcuseForm() {
         </div>
 
         {/* Phone mockup */}
-        <div className="bg-white border-[6px] border-black rounded-[40px] p-5 shadow-[16px_16px_0_#000] w-full max-w-md mx-auto flex flex-col gap-5">
+        <div className="bg-white border-[6px] border-black rounded-[40px] p-5 shadow-[16px_16px_0_#000] w-full max-w-105 mx-auto flex flex-col gap-5">
 
           {/* Notch */}
           <div className="flex justify-center border-b-[3px] border-[#E5E5E5] pb-4">
@@ -168,21 +241,34 @@ export default function ExcuseForm() {
             )}
 
             {excuse && !error && (
-              <div className="self-end max-w-[85%]">
-                <div
-                  className="bg-[#33FF00] border-[3px] border-black px-4 py-4 text-base font-bold leading-relaxed"
-                  style={{ borderRadius: "24px 24px 4px 24px", boxShadow: "4px 4px 0 rgba(0,0,0,0.2)" }}
-                >
-                  {excuse}
+              <>
+                {/* Received message */}
+                <div className="self-start max-w-[80%]">
+                  <div
+                    className="bg-[#E5E5E5] border-[3px] border-black px-4 py-4 text-base font-semibold leading-snug"
+                    style={{ borderRadius: "24px 24px 24px 4px" }}
+                  >
+                    {submittedSituation}
+                  </div>
                 </div>
-                <div className="text-[11px] font-extrabold text-[#FF2A2A] mt-2 mr-3 flex items-center justify-end gap-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
-                  Auto-generated
+
+                {/* Generated excuse */}
+                <div className="self-end max-w-[85%]">
+                  <div
+                    className="bg-[#33FF00] border-[3px] border-black px-4 py-4 text-base font-bold leading-relaxed"
+                    style={{ borderRadius: "24px 24px 4px 24px", boxShadow: "4px 4px 0 rgba(0,0,0,0.2)" }}
+                  >
+                    {excuse}
+                  </div>
+                  <div className="text-[11px] font-extrabold text-[#FF2A2A] mt-2 mr-3 flex items-center justify-end gap-1">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Auto-generated
+                  </div>
                 </div>
-              </div>
+              </>
             )}
 
           </div>
@@ -190,7 +276,7 @@ export default function ExcuseForm() {
 
         {/* Action buttons */}
         {excuse && !error && (
-          <div className="flex flex-col gap-3 max-w-md mx-auto w-full">
+          <div className="flex flex-col gap-3 max-w-105 mx-auto w-full">
             <button
               onClick={copy}
               className="bg-black text-white font-extrabold text-lg uppercase py-4 text-center rounded-xl cursor-pointer tracking-wide"
@@ -198,11 +284,10 @@ export default function ExcuseForm() {
               {copied ? "Copied!" : "Copy to Clipboard"}
             </button>
             <button
-              onClick={() => generate()}
-              disabled={loading}
-              className="bg-white border-[3px] border-black text-black font-extrabold text-lg uppercase py-4 text-center rounded-xl shadow-[4px_4px_0_#000] cursor-pointer disabled:opacity-40 tracking-wide"
+              onClick={sendSms}
+              className="bg-white border-[3px] border-black text-black font-extrabold text-lg uppercase py-4 text-center rounded-xl shadow-[4px_4px_0_#000] cursor-pointer tracking-wide"
             >
-              Regenerate
+              Send Directly (SMS)
             </button>
           </div>
         )}

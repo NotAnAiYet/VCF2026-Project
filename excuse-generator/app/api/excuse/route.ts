@@ -3,12 +3,13 @@ import Groq from "groq-sdk";
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-type Tone = "formal" | "casual" | "funny";
+type ThreatLevel = "mild" | "moderate" | "defcon1" | "funny";
 
-const TONE_INSTRUCTIONS: Record<Tone, string> = {
-  formal: "Use professional, polished language suitable for a work or official setting.",
-  casual: "Use natural, conversational language as if texting a friend or colleague.",
-  funny: "Add a light-hearted, humorous twist while still keeping the excuse believable.",
+const THREAT_INSTRUCTIONS: Record<ThreatLevel, string> = {
+  mild: "Keep the tone light and professional. The excuse should be low-drama and easy to accept.",
+  moderate: "Use natural, conversational language. The excuse should feel real but not overly dramatic.",
+  defcon1: "The excuse must sound urgent and serious — this is a last-resort escape. High drama, still plausible.",
+  funny: "Make the excuse absurdly funny — over-the-top, ridiculous, but delivered with complete sincerity. Comedy gold.",
 };
 
 export async function POST(req: NextRequest) {
@@ -18,10 +19,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A situation is required." }, { status: 400 });
   }
 
-  const tone: Tone =
-    body.tone && ["formal", "casual", "funny"].includes(body.tone)
-      ? body.tone
-      : "casual";
+  const threatLevel: ThreatLevel =
+    body.threatLevel && ["mild", "moderate", "defcon1", "funny"].includes(body.threatLevel)
+      ? body.threatLevel
+      : "moderate";
+
+  const excuseFlavor = typeof body.excuseFlavor === "string" && body.excuseFlavor.trim() ? body.excuseFlavor.trim() : null;
 
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
@@ -30,12 +33,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const systemPrompt = `You are an expert excuse writer. The user will describe a situation. Your job is to:
-- Infer the appropriate context automatically (professional, social, health-related, family, school, etc.) from what the user says.
-- Write a believable, convincing excuse that fits that context perfectly.
+  const flavorLine = excuseFlavor ? `\n- Excuse flavor/type: ${excuseFlavor}` : "";
+
+  const systemPrompt = `You are an expert excuse writer. The user will describe a situation they want to bail out of. Your job is to:
+- Write a believable, convincing excuse that fits the context perfectly.${flavorLine}
 - Output ONLY the excuse text, ready to be sent as-is — no labels, no preamble, no quotation marks.
 - Keep the excuse under 80 words.
-- Tone: ${tone}. ${TONE_INSTRUCTIONS[tone]}`;
+- Urgency/tone: ${THREAT_INSTRUCTIONS[threatLevel]}`;
 
   try {
     const completion = await client.chat.completions.create({

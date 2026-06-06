@@ -12,8 +12,19 @@ export default function Home() {
           >
             BAIL.
           </div>
-          <div className="text-[11px] font-extrabold uppercase tracking-widest border-2 border-black rounded-full px-4 py-2 bg-white">
+          <div className="text-sm font-extrabold uppercase tracking-widest border-2 border-black rounded-full px-4 py-2 bg-white">
             Beta v0.9
+          </div>
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="text-base font-extrabold">
+            Credits: <span style={{ color: "#FF2A2A" }}>12 remaining</span>
+          </div>
+          <div
+            className="w-12 h-12 rounded-full border-[3px] border-black flex items-center justify-center font-extrabold text-xl"
+            style={{ backgroundColor: "#CC99FF", boxShadow: "4px 4px 0 #000" }}
+          >
+            👤
           </div>
         </div>
       </header>
