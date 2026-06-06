@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { type ThreatLevel, THREAT_LEVELS, THREAT_ACTIVE_CLASS } from "@/data/threatLevels";
+import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
   const [threatLevel, setThreatLevel] = useState<ThreatLevel>("moderate");
-  const [excuseFlavor, setExcuseFlavor] = useState(EXCUSE_FLAVORS[0]);
+  const [excuseFlavor, setExcuseFlavor] = useState(EXCUSE_FLAVORS[0].label);
   const [flavorOpen, setFlavorOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [excuse, setExcuse] = useState("");
@@ -110,7 +110,7 @@ export default function ExcuseForm() {
                   "flex-1 py-4 text-center font-extrabold text-base transition-colors cursor-pointer",
                   i < THREAT_LEVELS.length - 1 ? "border-r-4 border-black" : "",
                   threatLevel === t.value
-                    ? THREAT_ACTIVE_CLASS[t.value]
+                    ? t.activeClass
                     : "bg-white text-black hover:bg-[#F4F4F0]",
                 ].join(" ")}
               >
@@ -144,15 +144,15 @@ export default function ExcuseForm() {
               <div className="absolute -left-1 -right-1 top-full border-4 border-t-0 border-black bg-white z-10 shadow-[6px_6px_0_#000]">
                 {EXCUSE_FLAVORS.map((f) => (
                   <button
-                    key={f}
+                    key={f.label}
                     type="button"
-                    onClick={() => { setExcuseFlavor(f); setFlavorOpen(false); }}
+                    onClick={() => { setExcuseFlavor(f.label); setFlavorOpen(false); }}
                     className={[
                       "w-full text-left px-5 py-4 font-extrabold text-base cursor-pointer border-b-2 border-[#E5E5E5] last:border-b-0",
-                      f === excuseFlavor ? "bg-[#FFE600]" : "bg-white hover:bg-[#F4F4F0]",
+                      f.label === excuseFlavor ? "bg-[#FFE600]" : "bg-white hover:bg-[#F4F4F0]",
                     ].join(" ")}
                   >
-                    {f}
+                    {f.label}
                   </button>
                 ))}
               </div>

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { THREAT_LEVELS } from "@/data/threatLevels";
+import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 
 const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
-type ThreatLevel = "mild" | "moderate" | "defcon1" | "funny";
-
-const THREAT_INSTRUCTIONS: Record<ThreatLevel, string> = {
-  mild: "Keep the tone light and professional. The excuse should be low-drama and easy to accept.",
-  moderate: "Use natural, conversational language. The excuse should feel real but not overly dramatic.",
-  defcon1: "The excuse must sound urgent and serious — this is a last-resort escape. High drama, still plausible.",
-  funny: "Make the excuse absurdly funny — over-the-top, ridiculous, but delivered with complete sincerity. Comedy gold.",
-};
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -19,12 +12,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "A situation is required." }, { status: 400 });
   }
 
-  const threatLevel: ThreatLevel =
-    body.threatLevel && ["mild", "moderate", "defcon1", "funny"].includes(body.threatLevel)
-      ? body.threatLevel
-      : "moderate";
+  const validThreatValues = THREAT_LEVELS.map((t) => t.value);
+  const threatLevelDef =
+    THREAT_LEVELS.find((t) => t.value === body.threatLevel) ??
+    THREAT_LEVELS.find((t) => t.value === "moderate")!;
 
-  const excuseFlavor = typeof body.excuseFlavor === "string" && body.excuseFlavor.trim() ? body.excuseFlavor.trim() : null;
+  const flavorDef =
+    EXCUSE_FLAVORS.find((f) => f.label === body.excuseFlavor) ?? null;
 
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
@@ -33,13 +27,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const flavorLine = excuseFlavor ? `\n- Excuse flavor/type: ${excuseFlavor}` : "";
+  // suppress unused-var warning while keeping the valid-values array for future validation
+  void validThreatValues;
+
+  const flavorLine = flavorDef
+    ? `\n- Excuse flavor: ${flavorDef.instruction}`
+    : "";
 
   const systemPrompt = `You are an expert excuse writer. The user will describe a situation they want to bail out of. Your job is to:
 - Write a believable, convincing excuse that fits the context perfectly.${flavorLine}
 - Output ONLY the excuse text, ready to be sent as-is — no labels, no preamble, no quotation marks.
 - Keep the excuse under 80 words.
-- Urgency/tone: ${THREAT_INSTRUCTIONS[threatLevel]}`;
+- Urgency/tone: ${threatLevelDef.instruction}`;
 
   try {
     const completion = await client.chat.completions.create({
