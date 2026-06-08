@@ -4,7 +4,7 @@
 
 Generate a believable, context-aware excuse for any situation. Describe what you're bailing on, pick a threat level and an excuse flavor, and get a ready-to-send alibi in seconds.
 
-Built with Next.js 15, Tailwind CSS, and the Groq API (Llama 3.1).
+Built with Next.js 16, Tailwind CSS, and the Groq API (Llama 3.1).
 
 ---
 
@@ -35,13 +35,27 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Open `.env.local` and add your Groq API key:
+Open `.env.local` and fill in the values:
 
 ```
 GROQ_API_KEY=your_groq_api_key_here
+
+# Set to "true" to require users to supply their own Groq API key.
+# When enabled, GROQ_API_KEY above is ignored and a key prompt appears in the header.
+NEXT_PUBLIC_USER_MODE=false
 ```
 
 > You can generate a key at [console.groq.com/keys](https://console.groq.com/keys). No billing setup required for the free tier.
+
+#### User mode
+
+Setting `NEXT_PUBLIC_USER_MODE=true` switches the app into a bring-your-own-key mode:
+
+- The server-side `GROQ_API_KEY` is ignored entirely.
+- A key button appears in the top-right corner of the header.
+- Clicking it opens a panel where users can enter their own Groq API key.
+- The key is saved in `localStorage` and never leaves the browser except as a request header sent directly to the Groq API via the Next.js route handler.
+- Users can clear their key from the same panel at any time.
 
 ### 4. Run the dev server
 
@@ -58,11 +72,12 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 excuse-generator/
 ├── app/
-│   ├── page.tsx               # Root page and header
+│   ├── page.tsx               # Root page and header (includes API key button)
 │   ├── layout.tsx             # HTML shell, font, metadata
 │   └── api/excuse/route.ts    # POST handler — calls Groq API
 ├── components/
-│   └── ExcuseForm.tsx         # Main UI: form, output, dice button
+│   ├── ExcuseForm.tsx         # Main UI: form, output, dice button
+│   └── ApiKeyButton.tsx       # Header key prompt (user mode only)
 └── data/
     ├── threatLevels.ts        # Threat level definitions + AI instructions
     ├── excuseFlavors.ts       # Excuse flavor definitions + AI instructions
