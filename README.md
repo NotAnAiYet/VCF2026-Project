@@ -40,22 +40,27 @@ Open `.env.local` and fill in the values:
 ```
 GROQ_API_KEY=your_groq_api_key_here
 
-# Set to "true" to require users to supply their own Groq API key.
-# When enabled, GROQ_API_KEY above is ignored and a key prompt appears in the header.
+# "false" (default) — server key is used; users may optionally override it via the header button.
+# "true" (user mode) — server key is never used; users must supply their own key via the header button.
 NEXT_PUBLIC_USER_MODE=false
 ```
 
 > You can generate a key at [console.groq.com/keys](https://console.groq.com/keys). No billing setup required for the free tier.
 
-#### User mode
+#### API key button
 
-Setting `NEXT_PUBLIC_USER_MODE=true` switches the app into a bring-your-own-key mode:
+A key button is always visible in the top-right corner of the header. Its behaviour depends on `NEXT_PUBLIC_USER_MODE`:
 
-- The server-side `GROQ_API_KEY` is ignored entirely.
-- A key button appears in the top-right corner of the header.
-- Clicking it opens a panel where users can enter their own Groq API key.
-- The key is saved in `localStorage` and never leaves the browser except as a request header sent directly to the Groq API via the Next.js route handler.
-- Users can clear their key from the same panel at any time.
+| Mode | `NEXT_PUBLIC_USER_MODE` | Button label | Server key used? |
+|------|------------------------|--------------|-----------------|
+| Default | `false` | "Override API key" | Yes, unless user supplies one |
+| User mode | `true` | "Add API key" | Never — user key is required |
+
+- The key is saved in `localStorage` and sent as an `x-groq-api-key` request header.
+- In default mode the user-supplied key takes priority; if none is set the server's `GROQ_API_KEY` is used as a fallback.
+- In user mode no server key is used at all — requests without a user-supplied key return a `401`.
+- Users can clear their saved key from the panel at any time.
+- If an invalid key is supplied, the request fails with a clear error — the server key is never used as a silent fallback.
 
 ### 4. Run the dev server
 
@@ -77,7 +82,7 @@ excuse-generator/
 │   └── api/excuse/route.ts    # POST handler — calls Groq API
 ├── components/
 │   ├── ExcuseForm.tsx         # Main UI: form, output, dice button
-│   └── ApiKeyButton.tsx       # Header key prompt (user mode only)
+│   └── ApiKeyButton.tsx       # Header key prompt
 └── data/
     ├── threatLevels.ts        # Threat level definitions + AI instructions
     ├── excuseFlavors.ts       # Excuse flavor definitions + AI instructions

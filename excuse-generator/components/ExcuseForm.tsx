@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 import { RANDOM_SITUATIONS } from "@/data/randomSituations";
-import { USER_MODE, useGroqApiKey } from "@/components/ApiKeyButton";
+import { useGroqApiKey } from "@/components/ApiKeyButton";
 
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
@@ -41,7 +41,7 @@ export default function ExcuseForm() {
 
     try {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
-      if (USER_MODE && userApiKey) {
+      if (userApiKey) {
         headers["x-groq-api-key"] = userApiKey;
       }
 
@@ -57,6 +57,9 @@ export default function ExcuseForm() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        if (data.code === "invalid_api_key") {
+          throw new Error("Invalid API key. Click the key button in the header to update it.");
+        }
         throw new Error(data.error ?? "Something went wrong. Please try again.");
       }
 
@@ -89,7 +92,7 @@ export default function ExcuseForm() {
     setExcuseFlavor(pick(EXCUSE_FLAVORS).label);
   }
 
-  const canSubmit = situation.trim().length > 0 && !loading && (!USER_MODE || !!userApiKey);
+  const canSubmit = situation.trim().length > 0 && !loading;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-20 items-start">

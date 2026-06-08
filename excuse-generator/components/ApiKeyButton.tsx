@@ -12,10 +12,9 @@ export function dispatchKeyChange() {
 }
 
 export function useGroqApiKey() {
-  const [userApiKey, setUserApiKey] = useState("");
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!USER_MODE) return;
     const sync = () => setUserApiKey(localStorage.getItem(LS_KEY) ?? "");
     sync();
     window.addEventListener(KEY_CHANGE_EVENT, sync);
@@ -26,6 +25,7 @@ export function useGroqApiKey() {
 }
 
 export default function ApiKeyButton() {
+  const [mounted, setMounted] = useState(false);
   const [userApiKey, setUserApiKey] = useState("");
   const [keyInput, setKeyInput] = useState("");
   const [keyPanelOpen, setKeyPanelOpen] = useState(false);
@@ -35,6 +35,7 @@ export default function ApiKeyButton() {
     const saved = localStorage.getItem(LS_KEY) ?? "";
     setUserApiKey(saved);
     setKeyInput(saved);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -63,21 +64,25 @@ export default function ApiKeyButton() {
     dispatchKeyChange();
   }, []);
 
+  if (!mounted) return null;
+
   return (
     <div ref={keyPanelRef} className="relative">
       <button
         type="button"
         onClick={() => { setKeyInput(userApiKey); setKeyPanelOpen((o) => !o); }}
-        title="Set your Groq API key"
-        className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-extrabold text-xs uppercase tracking-widest transition-colors cursor-pointer ${userApiKey ? "bg-[#33FF00] text-black" : "bg-[#FFE600] text-black"} shadow-[4px_4px_0_#000]`}
+        title={USER_MODE ? "Your Groq API key (required)" : "Override Groq API key (optional)"}
+        className={`flex items-center gap-2 px-3 py-2 border-4 border-black font-extrabold text-xs uppercase tracking-widest transition-colors cursor-pointer shadow-[4px_4px_0_#000] ${userApiKey ? "bg-[#33FF00] text-black" : "bg-[#FFE600] text-black"}`}
       >
         <KeyIcon />
-        {userApiKey ? "Key saved" : "Add API key"}
+        {userApiKey ? "Key saved" : USER_MODE ? "Add API key" : "Override API key"}
       </button>
 
       {keyPanelOpen && (
         <div className="absolute right-0 top-full mt-2 z-20 bg-white border-4 border-black shadow-[8px_8px_0_#000] p-4 flex flex-col gap-3 w-80">
-          <div className="text-xs font-black uppercase tracking-widest">Your Groq API key</div>
+          <div className="text-xs font-black uppercase tracking-widest">
+            {USER_MODE ? "Your Groq API key" : "Override Groq API key"}
+          </div>
           <input
             type="password"
             value={keyInput}
@@ -88,7 +93,9 @@ export default function ApiKeyButton() {
             autoFocus
           />
           <p className="text-[11px] font-semibold text-[#666]">
-            Stored locally in your browser. Never sent anywhere except Groq.
+            {USER_MODE
+              ? "Required. Stored locally in your browser. Never sent anywhere except Groq."
+              : "Optional. Overrides the server key. Stored locally in your browser."}
           </p>
           <div className="flex gap-2">
             <button

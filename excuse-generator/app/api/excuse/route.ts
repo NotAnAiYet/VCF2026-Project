@@ -19,10 +19,11 @@ export async function POST(req: NextRequest) {
     EXCUSE_FLAVORS.find((f) => f.label === body.excuseFlavor) ?? null;
 
   const userMode = process.env.NEXT_PUBLIC_USER_MODE === "true";
+  const headerKey = req.headers.get("x-groq-api-key") ?? undefined;
 
   let apiKey: string | undefined;
   if (userMode) {
-    apiKey = req.headers.get("x-groq-api-key") ?? undefined;
+    apiKey = headerKey;
     if (!apiKey) {
       return NextResponse.json(
         { error: "No API key provided. Enter your Groq API key to continue." },
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       );
     }
   } else {
-    apiKey = process.env.GROQ_API_KEY;
+    apiKey = headerKey || process.env.GROQ_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "GROQ_API_KEY is not configured." },
@@ -73,6 +74,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ excuse });
   } catch (err) {
+    if (err instanceof Groq.APIError && err.status === 401) {
+      return NextResponse.json(
+        { error: "Invalid API key. Check your Groq API key and try again.", code: "invalid_api_key" },
+        { status: 401 }
+      );
+    }
     const message =
       err instanceof Error ? err.message : "Failed to contact Groq.";
     return NextResponse.json({ error: message }, { status: 502 });
