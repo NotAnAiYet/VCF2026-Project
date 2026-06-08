@@ -5,19 +5,6 @@ import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 import { RANDOM_SITUATIONS } from "@/data/randomSituations";
 
-function threatBtnClass(i: number, isActive: boolean, activeClass: string): string {
-  // 2-col grid on mobile → 4-col on sm+
-  // Mobile borders: right on even indices, bottom on first row
-  // SM borders: right on all but last (i < 3), no bottom
-  const parts = [
-    "py-4 text-center font-extrabold text-sm sm:text-base transition-colors cursor-pointer",
-    i % 2 === 0                 && "border-r-4 border-black",
-    i < 2                       && "border-b-4 sm:border-b-0 border-black",
-    (i === 1 || i === 2)        && "sm:border-r-4 sm:border-black",
-    isActive ? activeClass : "bg-white text-black hover:bg-[#F4F4F0]",
-  ];
-  return parts.filter(Boolean).join(" ");
-}
 
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
@@ -124,13 +111,13 @@ export default function ExcuseForm() {
           <div className="text-sm font-black uppercase tracking-widest">
             2. Threat Level
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 border-4 border-black shadow-[6px_6px_0_#000] w-full overflow-hidden">
-            {THREAT_LEVELS.map((t, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-4 border-4 border-black shadow-[6px_6px_0_#000] w-full bg-black gap-[3px] overflow-hidden">
+            {THREAT_LEVELS.map((t) => (
               <button
                 key={t.value}
                 type="button"
                 onClick={() => setThreatLevel(t.value)}
-                className={threatBtnClass(i, threatLevel === t.value, t.activeClass)}
+                className={`py-4 text-center font-extrabold text-sm sm:text-base transition-colors cursor-pointer ${threatLevel === t.value ? t.activeClass : "bg-white text-black hover:bg-[#F4F4F0]"}`}
               >
                 {t.label}
               </button>
