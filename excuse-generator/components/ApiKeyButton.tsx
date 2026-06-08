@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 export const USER_MODE = process.env.NEXT_PUBLIC_USER_MODE === "true";
 export const LS_KEY = "groq_api_key";
+
+const KEY_CHANGE_EVENT = "groq-key-changed";
+
+export function dispatchKeyChange() {
+  window.dispatchEvent(new Event(KEY_CHANGE_EVENT));
+}
 
 export function useGroqApiKey() {
   const [userApiKey, setUserApiKey] = useState("");
 
   useEffect(() => {
-    if (USER_MODE) {
-      setUserApiKey(localStorage.getItem(LS_KEY) ?? "");
-    }
+    if (!USER_MODE) return;
+    const sync = () => setUserApiKey(localStorage.getItem(LS_KEY) ?? "");
+    sync();
+    window.addEventListener(KEY_CHANGE_EVENT, sync);
+    return () => window.removeEventListener(KEY_CHANGE_EVENT, sync);
   }, []);
 
   return userApiKey;
@@ -39,19 +47,21 @@ export default function ApiKeyButton() {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
 
-  function saveKey() {
+  const saveKey = useCallback(() => {
     const trimmed = keyInput.trim();
     localStorage.setItem(LS_KEY, trimmed);
     setUserApiKey(trimmed);
     setKeyPanelOpen(false);
-  }
+    dispatchKeyChange();
+  }, [keyInput]);
 
-  function clearKey() {
+  const clearKey = useCallback(() => {
     localStorage.removeItem(LS_KEY);
     setUserApiKey("");
     setKeyInput("");
     setKeyPanelOpen(false);
-  }
+    dispatchKeyChange();
+  }, []);
 
   return (
     <div ref={keyPanelRef} className="relative">
