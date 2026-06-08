@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { type ThreatLevel, THREAT_LEVELS } from "@/data/threatLevels";
 import { EXCUSE_FLAVORS } from "@/data/excuseFlavors";
 import { RANDOM_SITUATIONS } from "@/data/randomSituations";
-
+import { USER_MODE, useGroqApiKey } from "@/components/ApiKeyButton";
 
 export default function ExcuseForm() {
   const [situation, setSituation] = useState("");
@@ -18,6 +18,8 @@ export default function ExcuseForm() {
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+
+  const userApiKey = useGroqApiKey();
 
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
@@ -38,9 +40,14 @@ export default function ExcuseForm() {
     setCopied(false);
 
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (USER_MODE && userApiKey) {
+        headers["x-groq-api-key"] = userApiKey;
+      }
+
       const res = await fetch("/api/excuse", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           situation: situation.trim(),
           threatLevel,
@@ -82,7 +89,7 @@ export default function ExcuseForm() {
     setExcuseFlavor(pick(EXCUSE_FLAVORS).label);
   }
 
-  const canSubmit = situation.trim().length > 0 && !loading;
+  const canSubmit = situation.trim().length > 0 && !loading && (!USER_MODE || !!userApiKey);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[500px_1fr] gap-20 items-start">

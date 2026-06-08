@@ -1,4 +1,5 @@
 import ExcuseForm from "@/components/ExcuseForm";
+import ApiKeyButton, { USER_MODE } from "@/components/ApiKeyButton";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
             Beta v1.0
           </div>
         </div>
+        {USER_MODE && <ApiKeyButton />}
       </header>
 
       <main className="flex-1 px-8 md:px-30 py-10">

@@ -18,14 +18,28 @@ export async function POST(req: NextRequest) {
   const flavorDef =
     EXCUSE_FLAVORS.find((f) => f.label === body.excuseFlavor) ?? null;
 
-  if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json(
-      { error: "GROQ_API_KEY is not configured." },
-      { status: 500 }
-    );
+  const userMode = process.env.NEXT_PUBLIC_USER_MODE === "true";
+
+  let apiKey: string | undefined;
+  if (userMode) {
+    apiKey = req.headers.get("x-groq-api-key") ?? undefined;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "No API key provided. Enter your Groq API key to continue." },
+        { status: 401 }
+      );
+    }
+  } else {
+    apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "GROQ_API_KEY is not configured." },
+        { status: 500 }
+      );
+    }
   }
 
-  const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  const client = new Groq({ apiKey });
 
   // suppress unused-var warning while keeping the valid-values array for future validation
   void validThreatValues;
