@@ -1,5 +1,7 @@
 # BAIL. — Excuse Generator
 
+![BAIL. app screenshot](Bail-Pic.png)
+
 Generate a believable, context-aware excuse for any situation. Describe what you're bailing on, pick a threat level and an excuse flavor, and get a ready-to-send alibi in seconds.
 
 Built with Next.js 15, Tailwind CSS, and the Groq API (Llama 3.1).
