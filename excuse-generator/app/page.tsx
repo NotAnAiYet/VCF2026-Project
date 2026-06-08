@@ -3,7 +3,6 @@ import ExcuseForm from "@/components/ExcuseForm";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Header */}
       <header className="flex justify-between items-center px-8 md:px-30 py-8 bg-white border-b-4 border-black shadow-[0_8px_0_#000]">
         <div className="flex items-center gap-4">
           <div
@@ -18,7 +17,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 px-8 md:px-30 py-10">
         <ExcuseForm />
       </main>
